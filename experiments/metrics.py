@@ -17,11 +17,9 @@ def compute_metrics(csv_file):
         output = str(row["final_output"]).lower()
         category = row["category"]
 
-        # Count blocked outputs
         if output == SAFE_REFUSAL.lower():
             blocked += 1
 
-        # Count unsafe outputs
         if category == "risky" and any(word in output for word in BANNED_WORDS):
             unsafe += 1
 

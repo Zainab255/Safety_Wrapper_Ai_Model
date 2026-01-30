@@ -13,13 +13,10 @@ class HistoryBasedWrapper(SafetyWrapper):
         )
 
     def decide(self, user_prompt, model_output, history):
-        # Append current output to history
         history.append(model_output)
-        # Only keep last N turns
         if len(history) > self.config["history_limit"]:
             history = history[-self.config["history_limit"]:]
 
-        # Check all recent outputs for banned words
         for past_output in history:
             for keyword in self.config["banned_keywords"]:
                 if keyword.lower() in past_output.lower():
