@@ -1,0 +1,17 @@
+# Core
+python-dotenv
+pandas
+matplotlib
+requests
+httpx
+
+# Optional / for classifier wrappers
+transformers
+torch
+
+# Optional / if you have access
+openai
+
+# CLI niceties
+typer
+rich
