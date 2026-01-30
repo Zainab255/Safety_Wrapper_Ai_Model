@@ -15,11 +15,11 @@ def run_pipeline(prompt: str, wrapper_type: str = "keyword"):
 
     model = BlackBoxLLM()
 
-    # Select wrapper dynamically
+    # Select wrapper dynamically based on type 
     if wrapper_type == "baseline":
         wrapper = None
     elif wrapper_type == "keyword":
-        wrapper = KeywordFilterWrapper(banned_keywords=["bomb", "kill", "weapon"])
+        wrapper = KeywordFilterWrapper(banned_keywords=["bomb", "kill", "weapon","hack"])
     elif wrapper_type == "history":
         wrapper = HistoryBasedWrapper(banned_keywords=["bomb", "kill", "weapon"], history_limit=3)
     elif wrapper_type == "query_budget":
@@ -68,7 +68,7 @@ def run_pipeline(prompt: str, wrapper_type: str = "keyword"):
 
 
 # ------------------------
-# CLI only code
+# CLI only code below
 # ------------------------
 if __name__ == "__main__":
     if len(sys.argv) < 2:
