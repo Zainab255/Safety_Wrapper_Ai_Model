@@ -1,7 +1,5 @@
 # Safety Wrappers for Black‑Box Language Models
 
-##  Project Concept Note
-
 ### Purpose 
 
 This project provides a **extensible safety‑wrapper system** that sits around a **black‑box Large Language Model (LLM)** and enforces simple safety policies (**ALLOW, BLOCK, MODIFY, REQUERY**) before returning model outputs to users.
