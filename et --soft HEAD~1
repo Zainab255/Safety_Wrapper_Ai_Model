@@ -1,8 +1,0 @@
-[33mf8d7a27[m Add history_wrapper , query_budget_wrapper and JSONL logging
-[33m42eb924[m Add batch runner , metrics computation, and prompt datasets
-[33mdc7562e[m Merge branch 'master' of https://github.com/Zainab255/Safety_Wrapper_Ai_Model
-[33m1fb6185[m Add Keyword-based Safety Wrapper and JSONL logging
-[33me7a7333[m Version-1
-[33me3546f3[m Update README.md
-[33m3e71434[m Add CLI Prompt input to pipeline runner
-[33mc242dee[m version-1

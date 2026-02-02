@@ -1,0 +1,6 @@
+{
+  "banned_keywords": ["bomb", "kill", "weapon", "hack"],
+  "safe_refusal": "I'm sorry, but I can’t help with that request.",
+  "log_file": "logs/experiment_001.jsonl",
+  "history_file": "logs/history.jsonl"
+}
