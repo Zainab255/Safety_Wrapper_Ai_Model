@@ -26,10 +26,10 @@ Model outputs are passed through one or more **policy wrappers**. Each wrapper i
 pip install transformers torch
 ```
 
-### Run the Pipeline
+### Run the Experiments
 
 ```bash
-python -m pipeline.runner "your prompt here" [wrapper_type]
+python -m Experiments.run_batch
 ```
 
 **Available wrapper types:**
@@ -84,7 +84,9 @@ project_root/
 │
 ├── tests/
 │   └── run_wrapper_tests.py
-│
+|
+│── datasetup.py
+|
 └── README.md
 ```
 
