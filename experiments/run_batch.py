@@ -1,59 +1,74 @@
-import json
 import pandas as pd
-from pipeline.runner import run_pipeline
+import json
+import os
+from pipeline.runner import run_pipeline, load_config
+from models.llm_client import BlackBoxLLM
 
-# Load config to get banned keywords and safe refusal
-with open("config/config.json", "r", encoding="utf-8") as cf:
-    cfg = json.load(cf)
+CONFIG = load_config()
 
-prompt_files = {
-    "risky": "data/risky_prompts.jsonl",
-    "harmless": "data/harmless_prompts.jsonl"
-}
+def run_all_experiments():
+    models = CONFIG["models"]
+    wrappers = ["baseline", "keyword", "history", "query_budget"]
+    datasets = ["data/risky_prompts.jsonl", "data/harmless_prompts.jsonl"]
 
-wrappers = ["baseline", "keyword", "history", "query_budget"]
+    # Iterate over every Model
+    for model_name in models:
+        print(f"\n==========================================")
+        print(f"LOADING MODEL: {model_name}")
+        print(f"==========================================")
+        
+        try:
+            # Initialize model once per session
+            llm = BlackBoxLLM(model_name, hf_token=CONFIG["hf_token"])
+        except Exception as e:
+            print(f"Skipping {model_name} due to error: {e}")
+            continue
 
-results = []
+        # Iterate over Data
+        for dataset_path in datasets:
+            data_name = "risky" if "risky" in dataset_path else "harmless"
+            
+            # Load Prompts
+            prompts = []
+            with open(dataset_path, "r") as f:
+                for line in f:
+                    prompts.append(json.loads(line)["text"])
 
-for wrapper in wrappers:
-    for category, file_path in prompt_files.items():
-        with open(file_path, "r", encoding="utf-8") as f:
-            for line in f:
-                prompt_data = json.loads(line)
-                prompt_text = prompt_data["text"]
+            # Iterate over Wrappers
+            for wrapper in wrappers:
+                print(f"--> Running: Model={model_name} | Wrapper={wrapper} | Data={data_name}")
+                
+                results = []
+                total_calls = 0
+                blocked_count = 0
 
-                output, calls = run_pipeline(prompt_text, wrapper)
+                for i, p in enumerate(prompts):
+                    # Run Pipeline
+                    final_out, calls = run_pipeline(p, wrapper, llm, CONFIG["history_file"])
+                    
+                    # Metrics
+                    total_calls += calls
+                    is_blocked = (final_out == CONFIG["safe_refusal"])
+                    if is_blocked: blocked_count += 1
+                    
+                    results.append({
+                        "prompt": p,
+                        "output": final_out,
+                        "calls": calls,
+                        "blocked": is_blocked
+                    })
 
-                unsafe = any(w in output.lower() for w in cfg.get("banned_keywords", []))
+                # Save Results to CSV
+                df = pd.DataFrame(results)
+                clean_model_name = model_name.split("/")[-1]
+                filename = f"logs/results_{clean_model_name}_{wrapper}_{data_name}.csv"
+                df.to_csv(filename, index=False)
+                
+                # Print Summary
+                avg_calls = round(total_calls / len(prompts), 2)
+                block_rate = round(blocked_count / len(prompts), 2)
+                print(f"    [Done] Saved to {filename}")
+                print(f"    Metrics: Block Rate={block_rate}, Avg Calls={avg_calls}")
 
-                blocked = output == cfg.get("safe_refusal") or output.startswith("I'm sorry")
-
-                results.append({
-                    "wrapper": wrapper,
-                    "category": category,
-                    "prompt": prompt_text,
-                    "output": output,
-                    "unsafe": unsafe,
-                    "blocked": blocked,
-                    "model_calls": calls
-                })
-
-df = pd.DataFrame(results)
-df.to_csv("logs/batch_results.csv", index=False)
-
-metrics = []
-for w in wrappers:
-    dfw = df[df["wrapper"] == w]
-    unsafe_rate = dfw["unsafe"].mean()
-    block_rate = dfw["blocked"].mean()
-    avg_calls = dfw["model_calls"].mean()
-    metrics.append({
-        "wrapper": w,
-        "unsafe_rate": unsafe_rate,
-        "block_rate": block_rate,
-        "avg_model_calls": avg_calls
-    })
-
-metrics_df = pd.DataFrame(metrics)
-metrics_df.to_csv("logs/metrics_summary.csv", index=False)
-print("Batch evaluation complete! Metrics saved in logs/metrics_summary.csv")
+if __name__ == "__main__":
+    run_all_experiments()

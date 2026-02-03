@@ -70,6 +70,13 @@ project_root/
 │
 ├── config/
 │   └── config.json        # Central configuration file
+|
+├── data/                 
+│   ├── risky_prompts.jsonl
+│   └── harmless_prompts.jsonl
+│
+├── experiments/          
+│   └── run_batch.py       # Script for batch evaluation and metrics
 │
 ├── logs/
 │   ├── experiment_001.jsonl
